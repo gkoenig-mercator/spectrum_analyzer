@@ -25,7 +25,7 @@ if __name__ == "__main__":
         save_path=f"{args.save_dir}/{t}_distribution.png",
     )
 
-    sa = SpectrumAnalyzer(field, label="O₂ (mmol/m³)")
+    sa = SpectrumAnalyzer(field, label=f"{cfg['long_name']} ({cfg['units']})")
     sa.compute()
     sa.plot_2d_spectrum(save_path=f"{args.save_dir}/{t}_2d_spectrum.png")
     sa.plot_radial_spectrum(save_path=f"{args.save_dir}/{t}_radial_spectrum.png")
