@@ -34,7 +34,7 @@ def compute_2d_power_spectrum(o2: xr.DataArray) -> tuple[np.ndarray, np.ndarray,
     kx       : 1D array of zonal wavenumbers      (cycles / grid point)
     ky       : 1D array of meridional wavenumbers  (cycles / grid point)
     """
-    o2_vals   = o2.values
+    o2_vals   = o2
     prepped   = _prepare_field_for_fft(o2_vals)
     F_shifted = fft.fftshift(fft.fft2(prepped))
     power_2d  = np.abs(F_shifted) ** 2
@@ -251,4 +251,5 @@ if __name__ == "__main__":
 
     plot_radial_spectrum(
         k_centers, radial_power, wavelength_deg,
-        save_path=f"{args.save_dir}/{t}_radial_
+        save_path=f"{args.save_dir}/{t}_radial_spectrum.png",
+    )

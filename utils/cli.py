@@ -1,5 +1,5 @@
 import argparse
-
+from utils.config import TRACER_CONFIG
 
 def parse_args():
     parser = argparse.ArgumentParser(

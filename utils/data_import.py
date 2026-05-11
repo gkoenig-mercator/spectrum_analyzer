@@ -1,10 +1,11 @@
 from utils.config import TRACER_CONFIG
+import numpy as np
 import copernicusmarine
 
 def load_tracer_data(args) -> np.ndarray:
     cfg = TRACER_CONFIG[args.tracer]
 
-    ds = copernicusmarine.subset(
+    ds = copernicusmarine.open_dataset(
         dataset_id=cfg["dataset_id"],
         variables=[args.tracer],
         minimum_longitude=-60.830714,
@@ -16,6 +17,7 @@ def load_tracer_data(args) -> np.ndarray:
         minimum_depth=args.depth,
         maximum_depth=args.depth,
     )
+    print(ds)
 
     field = ds[args.tracer].isel(time=0, depth=0).values
     return field
