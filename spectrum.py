@@ -228,7 +228,7 @@ def main():
 
 if __name__ == "__main__":
 
-   args = parse_args()
+    args = parse_args()
     cfg = TRACER_CONFIG[args.tracer]
     t = args.tracer  # short alias for filenames
 
