@@ -28,4 +28,17 @@ def parse_args():
         "--save-dir", type=str, default="./plots",
         help="Directory to save output figures"
     )
+
+    parser.add_argument(
+        "--lon-min", type=float, default=-60.
+    )
+    parser.add_argument(
+        "--lon-max", type=float, default=-41.
+    )
+    parser.add_argument(
+        "--lat-min", type=float, default=21.
+    )
+    parser.add_argument(
+        "--lat-max", type=float, default=35.
+    )
     return parser.parse_args()
