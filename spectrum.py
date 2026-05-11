@@ -2,79 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import fft
 from scipy.stats import gaussian_kde
-import copernicusmarine
 import xarray as xr
+from utils.config import TRACER_CONFIG
 
-
-# ─────────────────────────────────────────
-# DATA LOADING
-# ─────────────────────────────────────────
-
-def load_oxygen_data() -> xr.DataArray:
-    """
-    Load dissolved oxygen data from Copernicus Marine Service.
-    Returns a 2D (lat, lon) DataArray squeezed from time and depth.
-    """
-    ds = copernicusmarine.open_dataset(
-        dataset_id="cmems_mod_glo_bgc-bio_anfc_0.25deg_P1D-m",
-        variables=["o2"],
-        minimum_longitude=-152,
-        maximum_longitude=-80,
-        minimum_latitude=-57,
-        maximum_latitude=-25,
-        start_datetime="2025-05-07T00:00:00",
-        end_datetime="2025-05-07T00:00:00",
-        maximum_depth=0.5,
-    )
-    o2 = ds["o2"].squeeze()
-    print(f"Shape     : {o2.shape}")
-    print(f"Range     : {float(o2.min()):.4f} – {float(o2.max()):.4f} mmol/m³")
-    print(f"NaN count : {int(np.isnan(o2.values).sum())}")
-    return o2
-
-
-# ─────────────────────────────────────────
-# DISTRIBUTION
-# ─────────────────────────────────────────
-
-def plot_distribution(o2: xr.DataArray, save_path: str = None) -> None:
-    """
-    Plot histogram and KDE of oxygen values with mean and median markers.
-
-    Parameters
-    ----------
-    o2        : 2D oxygen DataArray (lat, lon)
-    save_path : optional file path to save the figure (e.g. 'o2_dist.png')
-    """
-    o2_flat = o2.values[~np.isnan(o2.values)].flatten()
-    mean_val   = np.mean(o2_flat)
-    median_val = np.median(o2_flat)
-
-    kde     = gaussian_kde(o2_flat)
-    x_range = np.linspace(o2_flat.min(), o2_flat.max(), 300)
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-
-    ax.hist(o2_flat, bins=40, density=True,
-            color="steelblue", alpha=0.6, label="Histogram")
-    ax.plot(x_range, kde(x_range),
-            color="darkblue", lw=2, label="KDE")
-    ax.axvline(mean_val,   color="red",    linestyle="--",
-               label=f"Mean: {mean_val:.3f}")
-    ax.axvline(median_val, color="orange", linestyle="--",
-               label=f"Median: {median_val:.3f}")
-
-    ax.set_xlabel("O₂ (mmol/m³)")
-    ax.set_ylabel("Density")
-    ax.set_title("Distribution of Dissolved Oxygen Values")
-    ax.legend()
-    plt.tight_layout()
-
-    if save_path:
-        plt.savefig(save_path, dpi=150)
-        print(f"Saved → {save_path}")
-    plt.show()
-
+from utils.cli import parse_args
+from utils.data_import import load_tracer_data
+from utils.distribution import plot_distribution
 
 # ─────────────────────────────────────────
 # 2D POWER SPECTRUM
@@ -263,15 +196,59 @@ def plot_radial_spectrum(
 # MAIN
 # ─────────────────────────────────────────
 
+def main():
+    args = parse_args()
+    cfg = TRACER_CONFIG[args.tracer]
+
+    ds = copernicusmarine.subset(
+        dataset_id=cfg["dataset_id"],
+        variables=[args.tracer],
+        minimum_longitude=-60.830714,
+        maximum_longitude=-41.984272,
+        minimum_latitude=21.906553,
+        maximum_latitude=35.717104,
+        start_datetime=args.start,
+        end_datetime=args.end,
+        minimum_depth=args.depth,
+        maximum_depth=args.depth,
+    )
+
+    # extract field — works for any tracer name now
+    field = ds[args.tracer].isel(time=0, depth=0).values
+
+    # pass tracer metadata to plot functions
+    label = f"{cfg['long_name']} ({cfg['units']})"
+
+    power_2d, kx, ky = compute_2d_spectrum(field)
+    plot_2d_spectrum(power_2d, kx, ky,
+                     save_path=f"{args.save_dir}/{args.tracer}_2d_spectrum.png")
+
+    plot_distribution(field, label=label,
+                      save_path=f"{args.save_dir}/{args.tracer}_distribution.png")
+
 if __name__ == "__main__":
 
-    o2 = load_oxygen_data()
+   args = parse_args()
+    cfg = TRACER_CONFIG[args.tracer]
+    t = args.tracer  # short alias for filenames
 
-    plot_distribution(o2, save_path="o2_distribution.png")
+    field = load_tracer_data(args)
 
-    power_2d, kx, ky = compute_2d_power_spectrum(o2)
-    plot_2d_spectrum(power_2d, kx, ky, save_path="o2_2d_spectrum.png")
+    plot_distribution(
+        field,
+        label=f"{cfg['long_name']} ({cfg['units']})",
+        save_path=f"{args.save_dir}/{t}_distribution.png",
+    )
+
+    power_2d, kx, ky = compute_2d_power_spectrum(field)
+
+    plot_2d_spectrum(
+        power_2d, kx, ky,
+        save_path=f"{args.save_dir}/{t}_2d_spectrum.png",
+    )
 
     k_centers, radial_power, wavelength_deg = compute_radial_spectrum(power_2d, kx, ky)
-    plot_radial_spectrum(k_centers, radial_power, wavelength_deg,
-                         save_path="o2_radial_spectrum.png")
+
+    plot_radial_spectrum(
+        k_centers, radial_power, wavelength_deg,
+        save_path=f"{args.save_dir}/{t}_radial_
