@@ -9,8 +9,8 @@ from utils.cli import parse_args
 from utils.data_import import load_tracer_data
 from utils.stats import DistributionStats
 from utils.distribution import plot_distribution
-from utils.spectrum_analyzer import SpectrumData, plot_2d_spectrum, plot_radial_spectrum
-
+from utils.spectral import SpectrumData
+from utils.plotting import plot_2d_spectrum, plot_radial_spectrum
 
 if __name__ == "__main__":
 
@@ -29,8 +29,8 @@ if __name__ == "__main__":
     stats.export(f"{args.save_dir_data}/{t}_stats.json")
 
     spectrum = SpectrumData.from_field(field, label=f"{cfg['long_name']} ({cfg['units']})")
-    # Access fields directly
-    print(spectrum.wavelengths)
-    print(spectrum.radial_power)
-    plot_2d_spectrum(spectrum, save_path=f"{args.save_dir_plots}/{t}_2d_spectrum.png")
-    plot_radial_spectrum(spectrum, save_path=f"{args.save_dir_plots}/{t}_radial_spectrum.png")
+    spectrum.export(f"{args.save_dir_data}/{t}_spectrum.json")
+    plot_2d_spectrum(spectrum, units = cfg['units'],
+                     save_path=f"{args.save_dir_plots}/{t}_2d_spectrum.png")
+    plot_radial_spectrum(spectrum, units = cfg['units'],
+                         save_path=f"{args.save_dir_plots}/{t}_radial_spectrum.png")
