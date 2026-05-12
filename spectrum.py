@@ -24,10 +24,11 @@ if __name__ == "__main__":
     plot_distribution(
         stats,
         label=f"{cfg['long_name']} ({cfg['units']})",
-        save_path=f"{args.save_dir}/{t}_distribution.png",
+        save_path=f"{args.save_dir_plots}/{t}_distribution.png",
     )
+    stats.export(f"{args.save_dir_data}/{t}_stats.json")
 
     sa = SpectrumAnalyzer(field, label=f"{cfg['long_name']} ({cfg['units']})")
     sa.compute()
-    sa.plot_2d_spectrum(save_path=f"{args.save_dir}/{t}_2d_spectrum.png")
-    sa.plot_radial_spectrum(save_path=f"{args.save_dir}/{t}_radial_spectrum.png")
+    sa.plot_2d_spectrum(save_path=f"{args.save_dir_plots}/{t}_2d_spectrum.png")
+    sa.plot_radial_spectrum(save_path=f"{args.save_dir_plots}/{t}_radial_spectrum.png")

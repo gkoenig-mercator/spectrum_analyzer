@@ -25,8 +25,12 @@ def parse_args():
         help="Target depth in metres"
     )
     parser.add_argument(
-        "--save-dir", type=str, default="./plots",
+        "--save-dir-plots", type=str, default="./plots",
         help="Directory to save output figures"
+    )
+    parser.add_argument(
+        "--save-dir-data", type=str, default="./data",
+        help="Directory to save output data"
     )
 
     parser.add_argument(
