@@ -7,6 +7,7 @@ from utils.config import TRACER_CONFIG
 
 from utils.cli import parse_args
 from utils.data_import import load_tracer_data
+from utils.stats import DistributionStats
 from utils.distribution import plot_distribution
 from utils.spectrum_analyzer import SpectrumAnalyzer
 
@@ -18,9 +19,10 @@ if __name__ == "__main__":
     t = args.tracer  # short alias for filenames
 
     field = load_tracer_data(args)
+    stats = DistributionStats.from_data(field)
 
     plot_distribution(
-        field,
+        stats,
         label=f"{cfg['long_name']} ({cfg['units']})",
         save_path=f"{args.save_dir}/{t}_distribution.png",
     )
